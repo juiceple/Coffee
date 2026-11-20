@@ -51,7 +51,7 @@ export default function PourAnimation({ steps, dose, water, dripper, live, liveE
   /* 붓는 위치 / 주전자 */
   const pos = IN > 0 ? pourPos(sim.pours, t) : null;
   const tipX = CX + (pos ? pos.x * 42 : 0);
-  const tipY = 56;
+  const tipY = 40;
   const tilt = IN > 0 ? 20 : 4;
   const sw = 1.6 + IN * 0.45;
 
@@ -116,13 +116,13 @@ export default function PourAnimation({ steps, dose, water, dripper, live, liveE
           </g>
         )}
 
-        {/* 주전자 */}
+        {/* 주전자: 꼭지(0,0)가 위를 향하고, 몸통은 그 아래 오른쪽 */}
         <g transform={`translate(${tipX} ${tipY}) rotate(${-tilt})`}>
-          <path d="M22,-26 Q4,-28 0,-2" fill="none" stroke="#2f2f33" strokeWidth={5} strokeLinecap="round" />
-          <rect x={18} y={-54} width={64} height={44} rx={10} fill="#2f2f33" />
-          <path d="M82,-46 Q104,-46 102,-26 Q100,-12 82,-16" fill="none" stroke="#2f2f33" strokeWidth={4} strokeLinecap="round" />
-          <circle cx={50} cy={-58} r={4} fill="#2f2f33" />
-          <rect x={24} y={-44} width={52} height={5} rx={2} fill="#fff" opacity={0.15} />
+          <path d="M24,34 Q4,34 1,6 L0,-2" fill="none" stroke="#2f2f33" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
+          <rect x={18} y={14} width={64} height={44} rx={10} fill="#2f2f33" />
+          <path d="M82,22 Q104,22 102,42 Q100,56 82,52" fill="none" stroke="#2f2f33" strokeWidth={4} strokeLinecap="round" />
+          <circle cx={50} cy={10} r={4} fill="#2f2f33" />
+          <rect x={24} y={24} width={52} height={5} rx={2} fill="#fff" opacity={0.15} />
         </g>
 
         <text x={8} y={262} style={{ fontSize: 15, fontWeight: 700, fill: 'var(--ink)' }}>{fmt(t)}</text>
