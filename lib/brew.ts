@@ -8,13 +8,14 @@ export const TEMPLATES: { id: TemplateId; label: string }[] = [
   { id: '46', label: '4:6 메소드' },
 ];
 
-export function templateSteps(id: TemplateId, dose: number, water: number): Step[] {
+export function templateSteps(id: TemplateId, dose: number, water: number, bloomSec = 40, bloomMul = 2): Step[] {
   const r = Math.round;
-  const bloom = r(dose * 2); // 뜸 물은 원두의 약 2배
+  const bloom = r(dose * bloomMul); // 뜸 물은 원두의 약 2배 (라이트는 2.5배)
+  const o = bloomSec - 40; // 뜸 시간만큼 이후 단계를 뒤로 민다
   switch (id) {
-    case 'v60-3': return [{ label: '뜸', t: 0, g: bloom }, { label: '1차', t: 40, g: r(water * 0.55) }, { label: '2차', t: 80, g: r(water) }];
-    case 'v60-slow': return [{ label: '뜸', t: 0, g: bloom }, { label: '연속 붓기', t: 40, g: r(water) }];
-    case 'wave': return [{ label: '뜸', t: 0, g: bloom }, { label: '1차 (낮게)', t: 40, g: r(water * 0.6) }, { label: '2차', t: 85, g: r(water) }];
+    case 'v60-3': return [{ label: '뜸', t: 0, g: bloom }, { label: '1차', t: bloomSec, g: r(water * 0.55) }, { label: '2차', t: 80 + o, g: r(water) }];
+    case 'v60-slow': return [{ label: '뜸', t: 0, g: bloom }, { label: '연속 붓기', t: bloomSec, g: r(water) }];
+    case 'wave': return [{ label: '뜸', t: 0, g: bloom }, { label: '1차 (낮게)', t: bloomSec, g: r(water * 0.6) }, { label: '2차', t: 85 + o, g: r(water) }];
     case '46': return [0.2, 0.4, 0.6, 0.8, 1].map((f, i) => ({ label: `${i + 1}차`, t: i * 45, g: r(water * f) }));
   }
 }
