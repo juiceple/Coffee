@@ -29,13 +29,14 @@ const Num = ({ label, unit, value, step, onChange }: { label: string; unit: stri
 
 export default function BrewTab({ form, setForm, phase, setPhase, onDone }: Props) {
   const [tpl, setTpl] = useState<TemplateId>('v60-3');
+  const [bloom, setBloom] = useState({ sec: 40, mul: 2 }); // 추천 적용 시 뜸 설정 유지
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
   const base = useRef(0), t0 = useRef(0), raf = useRef(0), wake = useRef<WakeLockSentinel | null>(null);
 
   const dose = parseFloat(form.dose) || 0, water = parseFloat(form.water) || 0;
   const set = (p: Partial<Form>) => setForm({ ...form, ...p });
-  const regen = (id = tpl, d = dose, w = water) => ({ steps: templateSteps(id, d, w), edited: false });
+  const regen = (id = tpl, d = dose, w = water) => ({ steps: templateSteps(id, d, w, bloom.sec, bloom.mul), edited: false });
   const setNum = (k: 'dose' | 'water', v: string) => {
     const d = k === 'dose' ? parseFloat(v) || 0 : dose, w = k === 'water' ? parseFloat(v) || 0 : water;
     set({ [k]: v, ...(form.edited ? {} : regen(tpl, d, w)) } as Partial<Form>);
@@ -44,7 +45,7 @@ export default function BrewTab({ form, setForm, phase, setPhase, onDone }: Prop
   const applyRec = () => {
     if (!rec || !dose) return;
     const w = rec.waterFor(dose);
-    setTpl(rec.tpl);
+    setTpl(rec.tpl); setBloom({ sec: rec.bloom, mul: rec.bloomMul });
     set({ temp: String(rec.tempMid), water: String(w), steps: templateSteps(rec.tpl, dose, w, rec.bloom, rec.bloomMul), edited: false });
   };
   const setStep = (i: number, p: Partial<Step>) =>
