@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import PourChart from './PourChart';
+import PourAnimation from './PourAnimation';
 import { TEMPLATES, fmt, templateSteps, type TemplateId } from '@/lib/brew';
 import type { Step } from '@/lib/types';
 
@@ -119,6 +120,11 @@ export default function BrewTab({ form, setForm, onDone }: Props) {
           <button className="btn sm" onClick={() => set(regen())}>템플릿으로 초기화</button>
         </div>
         {hints.map((h) => <div key={h} className="hint warn">{h}</div>)}
+      </div>
+
+      <div className="card">
+        <h2>물 붓는 모습 <span className="mute">(시뮬레이션)</span></h2>
+        <PourAnimation steps={form.steps} dose={dose} water={water} dripper={form.dripper} live={running || elapsed > 0} liveElapsed={elapsed} />
       </div>
 
       <div className="card">
