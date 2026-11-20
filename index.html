@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>My Brew Log</title>
+<meta name="theme-color" content="#3b2a20">
+<style>
+:root{
+  --bg:#f6f1ea;--card:#fffdf9;--ink:#2b2018;--mute:#7b6a5c;--line:#e6dccf;
+  --accent:#8a4b24;--accent-ink:#fff;--chip:#efe5d8;--good:#3d7a4a;--warn:#b5651d;--bad:#a8332b;
+  --chart:#8a4b24;--chart2:#d9b48f;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1a1410;--card:#241b15;--ink:#f1e8de;--mute:#a89583;--line:#3a2d23;
+    --accent:#e0985f;--accent-ink:#1a1410;--chip:#33271e;--good:#79c488;--warn:#e5a35a;--bad:#e8786e;
+    --chart:#e0985f;--chart2:#5a4331;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;padding-bottom:84px}
+main{max-width:720px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0}
+h2{font-size:16px;margin:0 0 10px}
+header{max-width:720px;margin:0 auto;padding:16px 16px 0;display:flex;justify-content:space-between;align-items:baseline}
+header small{color:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+label{display:block;font-size:13px;color:var(--mute);margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:44px}
+textarea{min-height:80px;resize:vertical}
+input[type=range]{padding:0;min-height:32px;accent-color:var(--accent)}
+.grid{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+.grid3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:380px){.grid3{grid-template-columns:1fr 1fr}}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{font:inherit;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:10px;padding:10px 14px;min-height:44px;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:4px 10px;min-height:32px;font-size:13px}
+.chip{display:inline-block;padding:5px 11px;border-radius:99px;background:var(--chip);border:1px solid var(--line);font-size:14px;cursor:pointer;user-select:none;margin:0 6px 6px 0}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:10}
+nav button{flex:1;max-width:180px;font:inherit;background:none;border:0;color:var(--mute);padding:10px 4px;min-height:56px;cursor:pointer}
+nav button.on{color:var(--accent);font-weight:700}
+nav button span{display:block;font-size:20px;line-height:1.1}
+nav button small{font-size:12px}
+.view{display:none}.view.on{display:block}
+.mute{color:var(--mute);font-size:13px}
+.stat{display:flex;gap:16px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.stat b{font-size:20px}
+.stat div{min-width:64px}
+.step{display:grid;grid-template-columns:1.2fr .8fr .8fr auto;gap:6px;align-items:center;margin-bottom:6px}
+.step input{padding:8px}
+.step.cur{outline:2px solid var(--accent);border-radius:10px}
+.timer{font-size:56px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.target{text-align:center;font-size:18px}
+.target b{color:var(--accent);font-size:28px}
+svg text{fill:var(--mute);font-size:11px}
+.hint{border-left:4px solid var(--accent);background:var(--chip);padding:10px 12px;border-radius:8px;margin:8px 0;font-size:14px}
+.hint.good{border-color:var(--good)}.hint.warn{border-color:var(--warn)}
+.item{cursor:pointer}
+.item h3{margin:0;font-size:16px}
+.stars{color:var(--accent);letter-spacing:2px}
+.sl{display:grid;grid-template-columns:48px 1fr 24px;gap:8px;align-items:center}
+details summary{cursor:pointer;color:var(--accent);font-weight:600;min-height:32px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:top}
+.empty{text-align:center;color:var(--mute);padding:30px 0}
+</style>
+</head>
+<body>
+<header><h1>☕ My Brew Log</h1><small>Grinder · 1Zpresso ZP6 Special</small></header>
+<main>
+
+<!-- ================= 추출 ================= -->
+<section id="v-brew" class="view on">
+  <div class="card">
+    <h2>1. 무엇을 내릴까?</h2>
+    <div class="grid">
+      <div><label>원두 / 로스터</label><input id="bean" placeholder="예: 에티오피아 구지 · 로스터"></div>
+      <div><label>로스팅 / 로스팅일</label>
+        <div class="row" style="flex-wrap:wrap">
+          <select id="roast" style="flex:1 1 100px"><option>라이트</option><option>미디엄 라이트</option><option>미디엄</option><option>다크</option></select>
+          <input id="roastDate" type="date" style="flex:1 1 130px">
+        </div>
+      </div>
+      <div><label>드리퍼</label>
+        <select id="dripper"><option>V60</option><option>칼리타 웨이브</option><option>기타</option></select></div>
+      <div><label>필터 종류</label><input id="filter" placeholder="예: 하리오 화이트"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. 레시피</h2>
+    <div class="grid3 grid">
+      <div><label>원두 (g)</label><input id="dose" type="number" inputmode="decimal" step="0.1" value="15"></div>
+      <div><label>물 (g)</label><input id="water" type="number" inputmode="decimal" step="1" value="240"></div>
+      <div><label>물 온도 (°C)</label><input id="temp" type="number" inputmode="numeric" value="92"></div>
+    </div>
+    <div class="row" style="margin:8px 0">
+      <span class="mute">비율</span><b id="ratio">1:16.0</b>
+      <span class="mute">빠른 선택</span>
+      <span id="ratioChips"></span>
+    </div>
+    <div class="grid">
+      <div><label>ZP6S 분쇄 (다이얼/클릭)</label><input id="grind" placeholder="예: 3.2.0"></div>
+      <div><label>붓기 템플릿</label>
+        <select id="tpl">
+          <option value="v60-3">V60 3단 (뜸+2회)</option>
+          <option value="v60-slow">V60 연속 붓기</option>
+          <option value="wave">웨이브 (낮게, 고르게)</option>
+          <option value="46">4:6 메소드</option>
+        </select></div>
+    </div>
+    <p class="mute" style="margin:8px 0 0">분쇄는 본인 ZP6S 다이얼 표기 그대로 적으세요. 아래 기록이 쌓이면 맛에 따라 어느 쪽으로 돌릴지 힌트를 줍니다.</p>
+  </div>
+
+  <div class="card">
+    <h2>3. 붓기 계획 <span class="mute">(누적 물량 기준)</span></h2>
+    <svg id="chart" viewBox="0 0 320 150" width="100%" role="img" aria-label="시간에 따른 누적 물량 그래프"></svg>
+    <div class="mute row" style="gap:12px;margin:2px 0 8px"><span>■ 계획 누적 물량</span><span id="rateInfo"></span></div>
+    <div class="step mute"><span>단계</span><span>시작(초)</span><span>누적(g)</span><span></span></div>
+    <div id="steps"></div>
+    <div class="row" style="margin-top:6px">
+      <button class="btn sm" id="addStep">+ 단계 추가</button>
+      <button class="btn sm" id="regen">템플릿으로 초기화</button>
+    </div>
+    <div id="planHints"></div>
+  </div>
+
+  <div class="card">
+    <h2>4. 추출 타이머</h2>
+    <div class="timer" id="clock">0:00</div>
+    <div class="target" id="target">시작을 누르세요</div>
+    <div class="row" style="justify-content:center;margin-top:12px">
+      <button class="btn primary" id="tStart">▶ 시작</button>
+      <button class="btn" id="tReset">리셋</button>
+      <button class="btn" id="tDone">완료 → 시음 기록</button>
+    </div>
+    <p class="mute" style="text-align:center;margin:8px 0 0">물줄기가 끊기지 않을 정도(초당 약 5g)로, 메인 붓기 중에는 젓지 않기.</p>
+  </div>
+</section>
+
+<!-- ================= 시음 기록 ================= -->
+<section id="v-taste" class="view">
+  <div class="card">
+    <h2>이번 추출 요약</h2>
+    <div id="snap" class="mute"></div>
+    <div class="grid" style="margin-top:10px">
+      <div><label>드로다운 총 시간 (초)</label><input id="drawdown" type="number" inputmode="numeric" placeholder="예: 175"></div>
+      <div><label>TDS % (선택)</label><input id="tds" type="number" inputmode="decimal" step="0.01" placeholder="예: 1.35"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>어떤 맛이었어?</h2>
+    <div id="sliders"></div>
+    <label style="margin-top:12px">전체 만족도</label>
+    <div id="stars" class="row"></div>
+    <label style="margin-top:12px">맛 태그</label>
+    <div id="tags"></div>
+    <label>메모 (향, 느낀 점, 다음에 바꿀 것)</label>
+    <textarea id="memo" placeholder="예: 식으면서 단맛이 올라옴. 다음엔 한 클릭 더 곱게."></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="btn primary" id="save">저장</button>
+      <button class="btn" id="clearForm">초기화</button>
+    </div>
+    <div id="tuneNow"></div>
+  </div>
+</section>
+
+<!-- ================= 히스토리 ================= -->
+<section id="v-hist" class="view">
+  <div class="card">
+    <div class="grid">
+      <input id="q" placeholder="원두·메모 검색">
+      <select id="sort"><option value="date">최신순</option><option value="score">만족도순</option></select>
+    </div>
+  </div>
+  <div id="list"></div>
+  <div class="card">
+    <h2>데이터</h2>
+    <p class="mute">기록은 이 기기 브라우저에만 저장돼요. 가끔 백업하세요.</p>
+    <div class="row">
+      <button class="btn" id="export">백업 내보내기</button>
+      <label class="btn" style="margin:0">가져오기<input id="import" type="file" accept="application/json" hidden></label>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 가이드 ================= -->
+<section id="v-guide" class="view">
+  <div class="card">
+    <h2>맛 → 조정 치트시트</h2>
+    <table>
+      <tr><th>맛</th><th>의미</th><th>먼저 바꿀 것</th></tr>
+      <tr><td>시고 얇음</td><td>덜 추출</td><td>더 곱게 · 온도↑ · 붓기 높이/교반↑</td></tr>
+      <tr><td>쓰고 떫음</td><td>과다 추출</td><td>더 굵게 · 온도↓ · 교반 줄이기</td></tr>
+      <tr><td>신맛+쓴맛 동시</td><td>입자 분포 불균일</td><td>붓기 부드럽게 · 필터 린싱 · 채널링 확인</td></tr>
+      <tr><td>밍밍함</td><td>농도 낮음</td><td>비율 진하게 (예: 1:16 → 1:15)</td></tr>
+      <tr><td>드로다운 너무 빠름</td><td>유속 과다</td><td>더 곱게 · 낮게 붓기</td></tr>
+      <tr><td>드로다운 너무 느림</td><td>막힘</td><td>더 굵게 · 높이 붓지 않기</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h2>순위로 보는 변수 (영향 큰 순)</h2>
+    <ol style="margin:0;padding-left:20px">
+      <li><b>분쇄</b> · 평균보다 입자 분포. ZP6S가 고정이니 다이얼 값을 기록해 두세요.</li>
+      <li><b>총 추출 시간</b> · 드로다운 시간을 꼭 적기.</li>
+      <li><b>교반/붓기</b> · 초당 약 5g, 물줄기 끊기지 않게. 높이 붓기는 교반↑, 과하면 막힘.</li>
+      <li><b>필터</b> · 같은 레시피도 필터에 따라 드로다운 3~6분 차이.</li>
+      <li><b>드리퍼 형상</b> · V60은 붓는 속도로 조절, 웨이브는 유속이 제한돼 고르게 추출.</li>
+      <li><b>물/온도</b> · 예열하면 재질 차이 작음. 온도는 속도 조절 손잡이.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h2>비교 실험 팁</h2>
+    <p style="margin:0">한 번에 하나만 바꾸세요. 원두·그라인더·물·필터는 고정하고, 드리퍼를 바꾸면 <b>드로다운 시간</b>과 <b>TDS</b>를 기록해 원인을 나눠 보세요. 뜸 물은 원두 무게의 약 2배, 로스팅 1~2일 된 원두는 가스가 많아 뜸이 불균일할 수 있어요.</p>
+  </div>
+</section>
+</main>
+
+<nav>
+  <button data-v="brew" class="on"><span>💧</span><small>추출</small></button>
+  <button data-v="taste"><span>👅</span><small>시음 기록</small></button>
+  <button data-v="hist"><span>📒</span><small>히스토리</small></button>
+  <button data-v="guide"><span>📖</span><small>가이드</small></button>
+</nav>
+
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const KEY='brewlog.v1', DRAFT='brewlog.draft.v1';
+const store={
+  get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+
+/* ---------- 상태 ---------- */
+let steps=[], edited=false;
+let taste={acid:3,sweet:3,bitter:3,body:3,aroma:3,finish:3};
+let overall=0, tags=new Set();
+const AXES=[['acid','산미'],['sweet','단맛'],['bitter','쓴맛'],['body','바디'],['aroma','향'],['finish','후미']];
+const TAGS=['시트러스','베리','과일','꽃향','캐러멜','초콜릿','견과','달콤','깔끔','묵직','밍밍','떫음','탄맛','발효','허브'];
+
+/* ---------- 탭 ---------- */
+function show(v){
+  $$('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));
+  $$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  if(v==='taste')renderSnap();
+  if(v==='hist')renderList();
+  window.scrollTo(0,0);
+}
+$$('nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+
+/* ---------- 레시피 ---------- */
+const num=id=>parseFloat($(id).value)||0;
+function templateSteps(){
+  const dose=num('#dose'), water=num('#water'), t=$('#tpl').value;
+  const r=x=>Math.round(x);
+  const bloom=r(dose*2);
+  if(t==='v60-3') return [['뜸',0,bloom],['1차',40,r(water*0.55)],['2차',80,r(water)]];
+  if(t==='v60-slow') return [['뜸',0,bloom],['연속 붓기',40,r(water)]];
+  if(t==='wave') return [['뜸',0,bloom],['1차 (낮게)',40,r(water*0.6)],['2차',85,r(water)]];
+  return [['1차 (40%의 앞)',0,r(water*0.2)],['2차',45,r(water*0.4)],['3차',90,r(water*0.6)],['4차',135,r(water*0.8)],['5차',180,r(water)]];
+}
+function updateRatio(){
+  const d=num('#dose'),w=num('#water');
+  $('#ratio').textContent=d&&w?'1:'+(w/d).toFixed(1):'-';
+}
+function regen(){ steps=templateSteps().map(([label,t,g])=>({label,t,g})); edited=false; renderSteps(); }
+function renderSteps(){
+  $('#steps').innerHTML=steps.map((s,i)=>`
+    <div class="step" data-i="${i}">
+      <input data-f="label" value="${esc(s.label)}" aria-label="단계 이름">
+      <input data-f="t" type="number" inputmode="numeric" value="${s.t}" aria-label="시작 초">
+      <input data-f="g" type="number" inputmode="numeric" value="${s.g}" aria-label="누적 g">
+      <button class="btn sm danger" data-del="${i}" aria-label="삭제">✕</button>
+    </div>`).join('');
+  drawChart();
+}
+$('#steps').addEventListener('input',e=>{
+  const row=e.target.closest('.step'); if(!row)return;
+  const s=steps[+row.dataset.i], f=e.target.dataset.f;
+  s[f]=f==='label'?e.target.value:(parseFloat(e.target.value)||0);
+  edited=true; drawChart(); saveDraft();
+});
+$('#steps').addEventListener('click',e=>{
+  const i=e.target.dataset.del; if(i===undefined)return;
+  steps.splice(+i,1); edited=true; renderSteps(); saveDraft();
+});
+$('#addStep').onclick=()=>{
+  const last=steps[steps.length-1]||{t:0,g:0};
+  steps.push({label:'추가',t:last.t+30,g:last.g}); edited=true; renderSteps(); saveDraft();
+};
+$('#regen').onclick=regen;
+['#dose','#water'].forEach(id=>$(id).addEventListener('input',()=>{updateRatio(); if(!edited)regen(); saveDraft();}));
+$('#tpl').onchange=regen;
+$('#ratioChips').innerHTML=[15,16,16.7,17].map(r=>`<span class="chip" data-r="${r}">1:${r}</span>`).join('');
+$('#ratioChips').onclick=e=>{
+  const r=parseFloat(e.target.dataset.r); if(!r)return;
+  $('#water').value=Math.round(num('#dose')*r); updateRatio(); if(!edited)regen(); else drawChart(); saveDraft();
+};
+['#bean','#roast','#roastDate','#dripper','#filter','#temp','#grind'].forEach(id=>$(id).addEventListener('input',saveDraft));
+
+function drawChart(){
+  const W=320,H=150,L=34,R=8,T=10,B=24;
+  const pts=steps.slice().sort((a,b)=>a.t-b.t);
+  const maxW=Math.max(num('#water'),...pts.map(p=>p.g),1);
+  const maxT=Math.max(180,...pts.map(p=>p.t))+30;
+  const x=t=>L+(W-L-R)*t/maxT, y=g=>H-B-(H-B-T)*g/maxW;
+  let d='', px=0, py=0;
+  pts.forEach((p,i)=>{
+    if(i===0){d+=`M${x(0)},${y(0)} L${x(p.t)},${y(0)}`;}
+    else d+=` L${x(p.t)},${y(py)}`;
+    // 붓는 시간: 5g/s 기준
+    const dur=Math.max((p.g-(i?pts[i-1].g:0))/5,0);
+    d+=` L${x(p.t+dur)},${y(p.g)}`;
+    py=p.g;
+  });
+  let g='';
+  for(let t=0;t<=maxT;t+=60) g+=`<line x1="${x(t)}" x2="${x(t)}" y1="${T}" y2="${H-B}" stroke="var(--line)"/><text x="${x(t)}" y="${H-8}" text-anchor="middle">${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}</text>`;
+  for(let i=0;i<=3;i++){const v=maxW*i/3; g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-4}" y="${y(v)+4}" text-anchor="end">${Math.round(v)}</text>`;}
+  const dots=pts.map(p=>`<circle cx="${x(p.t)}" cy="${y(p.g)}" r="3.5" fill="var(--chart)"/>`).join('');
+  $('#chart').innerHTML=g+`<path d="${d}" fill="none" stroke="var(--chart)" stroke-width="2.5"/>`+dots+`<line id="nowLine" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="var(--bad)" stroke-width="1.5" opacity="0"/>`;
+  $('#chart')._x=x;
+  // 힌트
+  const hints=[];
+  if(pts.length>1){
+    const dose=num('#dose');
+    if(pts[0].g && dose && Math.abs(pts[0].g/dose-2)>0.6 && /뜸/.test(pts[0].label)) hints.push(`뜸 물이 원두의 ${(pts[0].g/dose).toFixed(1)}배예요. 보통 약 2배(${Math.round(dose*2)}g)를 씁니다.`);
+    const fast=pts.some((p,i)=>i&&p.t-pts[i-1].t>0&&(p.g-pts[i-1].g)/(p.t-pts[i-1].t)>5);
+    if(fast) hints.push('어떤 구간은 초당 5g보다 빠르게 부어야 해요. 시간을 늘리거나 단계를 나누면 편해요.');
+  }
+  $('#planHints').innerHTML=hints.map(h=>`<div class="hint warn">${esc(h)}</div>`).join('');
+  $('#rateInfo').textContent='곡선은 초당 약 5g로 붓는다고 가정';
+}
+
+/* ---------- 타이머 ---------- */
+let t0=0, acc=0, run=false, raf=0, wake=null;
+const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+function elapsed(){return acc+(run?(performance.now()-t0)/1000:0);}
+function tick(){
+  const e=elapsed(); $('#clock').textContent=fmt(e);
+  const pts=steps.slice().sort((a,b)=>a.t-b.t);
+  let idx=-1; pts.forEach((p,i)=>{if(e>=p.t)idx=i;});
+  const next=pts[idx+1];
+  const cur=pts[idx];
+  if(!run&&e===0) $('#target').textContent='시작을 누르세요';
+  else if(next) $('#target').innerHTML=`${esc(cur?cur.label:'준비')} → <b>${cur?cur.g:0}g</b> 까지 · 다음 ${fmt(next.t)} <b>${next.g}g</b>`;
+  else if(cur) $('#target').innerHTML=`마지막 단계 <b>${cur.g}g</b> · 드로다운 대기`;
+  $$('#steps .step').forEach((r,i)=>r.classList.toggle('cur',steps[i]&&cur&&steps[i]===cur));
+  const nl=$('#nowLine'), xf=$('#chart')._x;
+  if(nl&&xf){const px=xf(e);nl.setAttribute('x1',px);nl.setAttribute('x2',px);nl.setAttribute('opacity',run||e>0?1:0);}
+  if(run)raf=requestAnimationFrame(tick);
+}
+async function lock(on){
+  try{ if(on&&navigator.wakeLock) wake=await navigator.wakeLock.request('screen'); else if(wake){await wake.release();wake=null;} }catch(e){}
+}
+$('#tStart').onclick=()=>{
+  if(run){acc=elapsed();run=false;$('#tStart').textContent='▶ 계속';lock(false);}
+  else{t0=performance.now();run=true;$('#tStart').textContent='⏸ 일시정지';lock(true);tick();}
+};
+$('#tReset').onclick=()=>{run=false;acc=0;cancelAnimationFrame(raf);$('#tStart').textContent='▶ 시작';lock(false);tick();};
+$('#tDone').onclick=()=>{
+  const e=Math.round(elapsed()); run=false; acc=e; cancelAnimationFrame(raf); lock(false);
+  $('#tStart').textContent='▶ 시작';
+  if(e>0)$('#drawdown').value=e;
+  show('taste');
+};
+
+/* ---------- 시음 폼 ---------- */
+$('#sliders').innerHTML=AXES.map(([k,l])=>`<div class="sl"><label style="margin:0">${l}</label><input type="range" min="1" max="5" step="1" value="3" data-k="${k}" aria-label="${l}"><b id="sv-${k}">3</b></div>`).join('');
+$('#sliders').addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;taste[k]=+e.target.value;$('#sv-'+k).textContent=e.target.value;});
+function renderStars(){
+  $('#stars').innerHTML=[1,2,3,4,5].map(i=>`<button class="btn sm" data-s="${i}" style="font-size:20px;color:var(--accent)" aria-label="${i}점">${i<=overall?'★':'☆'}</button>`).join('');
+}
+$('#stars').onclick=e=>{const s=e.target.closest('[data-s]');if(!s)return;overall=+s.dataset.s;renderStars();};
+function renderTags(){
+  $('#tags').innerHTML=TAGS.map(t=>`<span class="chip ${tags.has(t)?'on':''}" data-t="${t}">${t}</span>`).join('');
+}
+$('#tags').onclick=e=>{const t=e.target.dataset.t;if(!t)return;tags.has(t)?tags.delete(t):tags.add(t);renderTags();};
+function recipeSnapshot(){
+  return {
+    bean:$('#bean').value.trim(), roast:$('#roast').value, roastDate:$('#roastDate').value,
+    dripper:$('#dripper').value, filter:$('#filter').value.trim(),
+    dose:num('#dose'), water:num('#water'), temp:num('#temp'), grind:$('#grind').value.trim(),
+    steps:steps.map(s=>({...s}))
+  };
+}
+function snapText(r){
+  return `<b>${esc(r.bean||'이름 없는 원두')}</b> · ${esc(r.roast)}<br>${esc(r.dripper)} · ${r.dose}g : ${r.water}g (1:${r.dose?(r.water/r.dose).toFixed(1):'-'}) · ${r.temp}°C · 분쇄 ${esc(r.grind||'-')}`;
+}
+function renderSnap(){$('#snap').innerHTML=snapText(recipeSnapshot());}
+
+/* ---------- 분석 힌트 ---------- */
+function tuneHints(r,tt,drawdown){
+  const out=[], a=tt.acid,s=tt.sweet,b=tt.bitter,body=tt.body;
+  if(a>=4&&b>=4) out.push(['warn','신맛과 쓴맛이 동시에 강해요. 입자 분포가 넓거나 채널링일 수 있어요. 붓기를 부드럽게 하고 필터를 충분히 린싱해 보세요.']);
+  else if(a>=4&&s<=2) out.push(['warn','덜 추출된 느낌이에요. ZP6S를 한두 클릭 곱게 하거나 온도를 1~2°C 올리고 교반을 조금 늘려보세요.']);
+  else if(b>=4&&s<=2) out.push(['warn','과다 추출 느낌이에요. 한두 클릭 굵게 하거나 온도를 낮추고 교반을 줄여보세요.']);
+  if(body<=2&&a<=3&&b<=3) out.push(['warn','밍밍하다면 비율을 진하게(예: 1:'+(Math.max(14,(r.water/r.dose||16)-1)).toFixed(0)+') 해 보세요.']);
+  if(drawdown){
+    if(drawdown<120) out.push(['warn',`드로다운 ${drawdown}초는 빠른 편이에요. 더 곱게 갈거나 낮게 붓기를 시도하세요.`]);
+    if(drawdown>240) out.push(['warn',`드로다운 ${drawdown}초는 느린 편이에요. 더 굵게 갈거나 필터 막힘을 확인하세요.`]);
+  }
+  if(!out.length&&a>=2&&a<=4&&s>=3&&b<=3) out.push(['good','균형이 좋아요. 이 레시피를 기준으로 한 가지씩만 바꿔 비교해 보세요.']);
+  return out;
+}
+const hintHtml=l=>l.map(([c,t])=>`<div class="hint ${c}">${esc(t)}</div>`).join('');
+
+/* ---------- 저장 / 목록 ---------- */
+const all=()=>store.get(KEY,[]);
+$('#save').onclick=()=>{
+  const r=recipeSnapshot();
+  const entry={id:Date.now().toString(36),date:new Date().toISOString(),...r,
+    drawdown:num('#drawdown')||null, tds:parseFloat($('#tds').value)||null,
+    taste:{...taste}, overall, tags:[...tags], memo:$('#memo').value.trim()};
+  const list=all(); list.push(entry); store.set(KEY,list);
+  $('#tuneNow').innerHTML='<div class="hint good">저장됨 ✓ 히스토리에서 확인하세요.</div>'+hintHtml(tuneHints(r,taste,entry.drawdown));
+  resetTaste();
+};
+function resetTaste(){
+  taste={acid:3,sweet:3,bitter:3,body:3,aroma:3,finish:3}; overall=0; tags.clear();
+  $$('#sliders input').forEach(i=>{i.value=3;$('#sv-'+i.dataset.k).textContent=3;});
+  $('#memo').value='';$('#drawdown').value='';$('#tds').value='';renderStars();renderTags();
+}
+$('#clearForm').onclick=()=>{resetTaste();$('#tuneNow').innerHTML='';};
+
+function radar(t,size=140){
+  const c=size/2,R=c-22,n=AXES.length;
+  const P=(i,v)=>{const a=-Math.PI/2+2*Math.PI*i/n;return [c+R*v/5*Math.cos(a),c+R*v/5*Math.sin(a)];};
+  let g='';
+  [1,2,3,4,5].forEach(v=>g+=`<polygon points="${AXES.map((_,i)=>P(i,v).join(',')).join(' ')}" fill="none" stroke="var(--line)"/>`);
+  const poly=AXES.map(([k],i)=>P(i,t[k]).join(',')).join(' ');
+  const lab=AXES.map(([k,l],i)=>{const [x,y]=P(i,6.3);return `<text x="${x}" y="${y+4}" text-anchor="middle">${l}</text>`;}).join('');
+  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" role="img" aria-label="맛 레이더">${g}<polygon points="${poly}" fill="var(--chart)" fill-opacity=".3" stroke="var(--chart)" stroke-width="2"/>${lab}</svg>`;
+}
+const stars=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+function renderList(){
+  const q=$('#q').value.trim().toLowerCase();
+  let list=all().filter(e=>!q||(e.bean+' '+e.memo+' '+(e.tags||[]).join(' ')).toLowerCase().includes(q));
+  list.sort($('#sort').value==='score'?(a,b)=>b.overall-a.overall||b.date.localeCompare(a.date):(a,b)=>b.date.localeCompare(a.date));
+  if(!list.length){$('#list').innerHTML='<div class="empty card">아직 기록이 없어요.<br>추출 → 시음 기록 순서로 남겨보세요.</div>';return;}
+  $('#list').innerHTML=list.map(e=>`
+    <div class="card item" data-id="${e.id}">
+      <div class="row" style="justify-content:space-between">
+        <h3>${esc(e.bean||'이름 없는 원두')}</h3><span class="stars">${stars(e.overall||0)}</span>
+      </div>
+      <div class="mute">${new Date(e.date).toLocaleDateString('ko-KR')} · ${esc(e.dripper)} · ${e.dose}g:${e.water}g · ${e.temp}°C · 분쇄 ${esc(e.grind||'-')}${e.drawdown?' · '+fmt(e.drawdown):''}</div>
+      <div style="margin-top:6px">${(e.tags||[]).map(t=>`<span class="chip" style="cursor:default">${esc(t)}</span>`).join('')}</div>
+      <div class="detail" hidden></div>
+    </div>`).join('');
+}
+$('#q').oninput=renderList; $('#sort').onchange=renderList;
+$('#list').addEventListener('click',e=>{
+  const card=e.target.closest('.item'); if(!card)return;
+  const entry=all().find(x=>x.id===card.dataset.id);
+  if(e.target.dataset.act==='del'){
+    if(confirm('이 기록을 삭제할까요?')){store.set(KEY,all().filter(x=>x.id!==entry.id));renderList();}
+    return;
+  }
+  if(e.target.dataset.act==='reuse'){loadRecipe(entry);return;}
+  const d=card.querySelector('.detail');
+  if(!d.hidden){d.hidden=true;return;}
+  d.innerHTML=`
+    <div class="row" style="align-items:flex-start;margin-top:8px">
+      ${radar(entry.taste)}
+      <div style="flex:1;min-width:180px" class="mute">
+        ${esc(entry.roast)}${entry.roastDate?' · 로스팅 '+entry.roastDate:''}<br>
+        필터 ${esc(entry.filter||'-')}${entry.tds?'<br>TDS '+entry.tds+'%':''}<br>
+        <b>붓기</b> ${entry.steps.map(s=>`${fmt(s.t)} ${esc(s.label)} ${s.g}g`).join(' → ')}
+      </div>
+    </div>
+    ${entry.memo?`<p>${esc(entry.memo)}</p>`:''}
+    ${hintHtml(tuneHints(entry,entry.taste,entry.drawdown))}
+    <div class="row"><button class="btn sm primary" data-act="reuse">이 레시피로 다시</button><button class="btn sm danger" data-act="del">삭제</button></div>`;
+  d.hidden=false;
+});
+function loadRecipe(r){
+  $('#bean').value=r.bean||'';$('#roast').value=r.roast;$('#roastDate').value=r.roastDate||'';
+  $('#dripper').value=r.dripper;$('#filter').value=r.filter||'';
+  $('#dose').value=r.dose;$('#water').value=r.water;$('#temp').value=r.temp;$('#grind').value=r.grind||'';
+  steps=r.steps.map(s=>({...s}));edited=true;updateRatio();renderSteps();saveDraft();show('brew');
+}
+
+/* ---------- 백업 ---------- */
+$('#export').onclick=()=>{
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(all(),null,1)],{type:'application/json'}));
+  a.download='brewlog-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+};
+$('#import').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  f.text().then(t=>{
+    try{
+      const inc=JSON.parse(t); if(!Array.isArray(inc))throw 0;
+      const have=new Set(all().map(x=>x.id)); const add=inc.filter(x=>x&&x.id&&!have.has(x.id));
+      store.set(KEY,all().concat(add)); renderList(); alert(add.length+'개 가져왔어요');
+    }catch(err){alert('올바른 백업 파일이 아니에요');}
+  });
+};
+
+/* ---------- 임시 저장 ---------- */
+function saveDraft(){
+  store.set(DRAFT,{...recipeSnapshot(),edited});
+}
+function init(){
+  const d=store.get(DRAFT,null);
+  const last=all().slice(-1)[0];
+  if(d&&d.steps){
+    $('#bean').value=d.bean||'';$('#roast').value=d.roast;$('#roastDate').value=d.roastDate||'';
+    $('#dripper').value=d.dripper;$('#filter').value=d.filter||'';
+    $('#dose').value=d.dose;$('#water').value=d.water;$('#temp').value=d.temp;$('#grind').value=d.grind||'';
+    steps=d.steps;edited=!!d.edited;updateRatio();renderSteps();
+  }else{updateRatio();regen();}
+  renderStars();renderTags();tick();
+}
+init();
+})();
+</script>
+</body>
+</html>
