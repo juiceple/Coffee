@@ -71,8 +71,8 @@ export default function PourAnimation({ steps, dose, water, dripper, live, liveE
     : t < sim.end ? (bloom > 0.05 && S < water * 0.3 ? '뜸 들이는 중' : Q > 0.05 ? '드로다운' : '대기') : '완료';
 
   return (
-    <div>
-      <svg viewBox="0 0 300 330" width="100%" role="img" aria-label="물 붓기 애니메이션" style={{ maxHeight: 420 }}>
+    <div className={live ? 'pa-live' : ''}>
+      <svg viewBox="0 0 300 330" width="100%" role="img" aria-label="물 붓기 애니메이션" style={live ? { height: '100%', minHeight: 0 } : { maxHeight: 420 }}>
         <defs><clipPath id="cone"><polygon points={poly(3)} /></clipPath></defs>
 
         {/* 위에서 본 궤적 */}
@@ -130,15 +130,15 @@ export default function PourAnimation({ steps, dose, water, dripper, live, liveE
         <text x={8} y={294}>드리퍼 {S.toFixed(0)}g</text>
       </svg>
 
-      <div className="row" style={{ marginTop: 4 }}>
-        {live ? <span className="mute">추출 타이머에 맞춰 움직이는 중</span> : (<>
+      {!live && <div className="row" style={{ marginTop: 4 }}>
+        {(<>
           <button className="btn sm" onClick={() => { if (pt >= sim.end + 2) setPt(0); setPlay(!play); }}>{play ? '⏸' : '▶'} 미리보기</button>
           <button className="btn sm" onClick={() => { setPlay(false); setPt(0); }}>처음</button>
           {[1, 2, 4].map((s) => <span key={s} className={`chip ${speed === s ? 'on' : ''}`} onClick={() => setSpeed(s)} style={{ margin: 0 }}>{s}x</span>)}
         </>)}
-      </div>
+      </div>}
       {!live && <input type="range" min={0} max={Math.ceil(sim.end + 2)} step={0.1} value={Math.min(pt, sim.end + 2)} onChange={(e) => { setPlay(false); setPt(+e.target.value); }} aria-label="시간 이동" />}
-      <p className="mute" style={{ margin: '4px 0 0' }}>붓기 계획을 바탕으로 한 시뮬레이션이에요. 커피가 원두의 약 2배 물을 머금은 뒤부터 서버로 빠지고, 뜸 때는 가스로 커피층이 부풀어요. 실제 드로다운은 분쇄·필터에 따라 달라요.</p>
+      {!live && <p className="mute" style={{ margin: '4px 0 0' }}>붓기 계획을 바탕으로 한 시뮬레이션이에요. 커피가 원두의 약 2배 물을 머금은 뒤부터 서버로 빠지고, 뜸 때는 가스로 커피층이 부풀어요. 실제 드로다운은 분쇄·필터에 따라 달라요.</p>}
     </div>
   );
 }

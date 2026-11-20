@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import PourChart from './PourChart';
 import PourAnimation from './PourAnimation';
 import { TEMPLATES, fmt, templateSteps, type TemplateId } from '@/lib/brew';
+import { ROASTS, recommend } from '@/lib/coffee';
 import type { Step } from '@/lib/types';
 import type { Phase } from './BrewApp';
 
@@ -38,6 +39,13 @@ export default function BrewTab({ form, setForm, phase, setPhase, onDone }: Prop
   const setNum = (k: 'dose' | 'water', v: string) => {
     const d = k === 'dose' ? parseFloat(v) || 0 : dose, w = k === 'water' ? parseFloat(v) || 0 : water;
     set({ [k]: v, ...(form.edited ? {} : regen(tpl, d, w)) } as Partial<Form>);
+  };
+  const rec = recommend(form.roast, form.dripper, form.roastDate);
+  const applyRec = () => {
+    if (!rec || !dose) return;
+    const w = rec.waterFor(dose);
+    setTpl(rec.tpl);
+    set({ temp: String(rec.tempMid), water: String(w), steps: templateSteps(rec.tpl, dose, w, rec.bloom, rec.bloomMul), edited: false });
   };
   const setStep = (i: number, p: Partial<Step>) =>
     set({ steps: form.steps.map((s, j) => (j === i ? { ...s, ...p } : s)), edited: true });
@@ -91,6 +99,37 @@ export default function BrewTab({ form, setForm, phase, setPhase, onDone }: Prop
       </div>
 
       <div className="card">
+        <h2>로스팅 · 추출 전략 추천</h2>
+        <div className="chips" role="group" aria-label="로스팅 단계">
+          {ROASTS.map((r) => <button key={r} className={`chip ${form.roast === r ? 'on' : ''}`} onClick={() => set({ roast: r })}>{r}</button>)}
+        </div>
+        {rec && (
+          <div className="rec">
+            <div className="rec-h"><b>{rec.tagline}</b><span className="mute">{rec.flavor}</span></div>
+            <div className="rec-g">
+              <div><small>분쇄 (ZP6S)</small><b>{rec.dialText}</b><em>{rec.micronText}</em></div>
+              <div><small>물 온도</small><b>{rec.temp[0]}~{rec.temp[1]}°C</b><em>비율 1:{rec.ratio}</em></div>
+              <div><small>뜸</small><b>{rec.bloom}초</b><em>원두 ×{rec.bloomMul}</em></div>
+              <div><small>총 시간</small><b>{rec.drawdownText}</b><em>{TEMPLATES.find((t) => t.id === rec.tpl)?.label.split(' (')[0]}</em></div>
+            </div>
+            <div className="mute" style={{ marginTop: 6 }}>교반: {rec.agitation}</div>
+            {rec.ageNote && <div className="mute">{rec.ageNote}</div>}
+            <details>
+              <summary>이렇게 추출해 보세요</summary>
+              <div className="dbody">
+                <ul className="strat">{rec.strategy.map((t) => <li key={t}>{t}</li>)}</ul>
+                <div className="hint warn">{rec.tune[0]}</div>
+                <div className="hint warn">{rec.tune[1]}</div>
+                <div className="mute">{rec.dripperNote}</div>
+                <div className="mute" style={{ marginTop: 6 }}>다이얼 값은 출발점이에요. 그라인더마다 편차가 있으니 첫 추출 후 드로다운 시간으로 보정하고 기록하세요.</div>
+              </div>
+            </details>
+            <button className="btn primary" style={{ width: '100%', marginTop: 8 }} disabled={!dose} onClick={applyRec}>추천 레시피 적용 · {rec.tempMid}°C · {dose ? rec.waterFor(dose) : '-'}g</button>
+          </div>
+        )}
+      </div>
+
+      <div className="card">
         <h2>레시피</h2>
         <div className="nums">
           <Num label="원두" unit="g" value={form.dose} step={0.5} onChange={(v) => setNum('dose', v)} />
@@ -137,12 +176,8 @@ export default function BrewTab({ form, setForm, phase, setPhase, onDone }: Prop
           </div>
         </details>
         <details>
-          <summary>원두·필터 상세 <small>{form.roast}</small></summary>
+          <summary>로스팅일·필터 <small>{form.roastDate || form.filter || ''}</small></summary>
           <div className="dbody grid">
-            <div><label>로스팅</label>
-              <select value={form.roast} onChange={(e) => set({ roast: e.target.value })}>
-                {['라이트', '미디엄 라이트', '미디엄', '다크'].map((r) => <option key={r}>{r}</option>)}
-              </select></div>
             <div><label>로스팅일</label><input type="date" value={form.roastDate} onChange={(e) => set({ roastDate: e.target.value })} /></div>
             <div style={{ gridColumn: '1 / -1' }}><label>필터 종류</label><input value={form.filter} onChange={(e) => set({ filter: e.target.value })} placeholder="예: 하리오 화이트" /></div>
           </div>
@@ -159,39 +194,33 @@ export default function BrewTab({ form, setForm, phase, setPhase, onDone }: Prop
     </>
   );
 
-  /* ───────── 2. 추출 ───────── */
+  /* ───────── 2. 추출 (타이머·단계·애니메이션을 한 화면에) ───────── */
   const pct = water ? Math.min(100, ((cur?.g ?? 0) / water) * 100) : 0;
   return (
     <>
-      <div className="card">
+      <div className="card fit">
         <div className="row between"><span className="mute">{summary}</span><button className="btn sm" onClick={() => setPhase('recipe')}>← 레시피</button></div>
-        <div className="timer" aria-live="off">{fmt(elapsed)}</div>
-        <div className="now">
-          {!started ? <div className="big">준비되면 시작을 누르세요</div>
-            : cur ? <>
-              <div className="big">{cur.label} · {cur.g}g까지</div>
-              <div className="sub">{next ? `다음 ${fmt(next.t)}에 ${next.g}g` : '마지막 단계 · 드로다운을 기다리세요'}</div>
-            </> : <div className="big">준비</div>}
+        <div className="tnow">
+          <div className="timer">{fmt(elapsed)}</div>
+          <div className="now">
+            {!started ? <div className="big">시작을 누르세요</div>
+              : cur ? <>
+                <div className="big">{cur.label} · {cur.g}g</div>
+                <div className="sub">{next ? `다음 ${fmt(next.t)} ${next.g}g` : '드로다운 대기'}</div>
+              </> : <div className="big">준비</div>}
+          </div>
         </div>
         <div className="bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${pct}%` }} /></div>
-        <div className="mute" style={{ textAlign: 'right' }}>목표 {cur?.g ?? 0} / {water}g</div>
-      </div>
-
-      <div className="card">
-        <h2>붓기 순서</h2>
-        <ul className="tl">
+        <ul className="strip" style={{ gridTemplateColumns: `repeat(${pts.length}, 1fr)` }}>
           {pts.map((p, i) => (
             <li key={i} className={i === idx ? 'cur' : i < idx ? 'past' : ''}>
-              <span className="dot">{i < idx ? '✓' : i + 1}</span>
-              <span>{p.label}</span><span className="mute">{fmt(p.t)}</span><span className="g">{p.g}g</span>
+              <b>{i < idx ? '✓ ' : ''}{p.label}</b><span>{fmt(p.t)} · {p.g}g</span>
             </li>
           ))}
         </ul>
-        <p className="mute" style={{ margin: '8px 0 0' }}>물줄기가 끊기지 않게(초당 약 5g), 메인 붓기 중에는 젓지 않기.</p>
-      </div>
-
-      <div className="card">
-        <PourAnimation steps={form.steps} dose={dose} water={water} dripper={form.dripper} live={started} liveElapsed={elapsed} />
+        <div className="anim">
+          <PourAnimation steps={form.steps} dose={dose} water={water} dripper={form.dripper} live={started} liveElapsed={elapsed} />
+        </div>
       </div>
 
       <div className="cta"><div className="cta-in">

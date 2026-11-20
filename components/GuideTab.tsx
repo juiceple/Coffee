@@ -1,6 +1,19 @@
+import { ROASTS, ROAST_GUIDE } from '@/lib/coffee';
+
 export default function GuideTab() {
   return (
     <>
+      <div className="card">
+        <h2>로스팅별 추출 가이드</h2>
+        <p className="mute" style={{ margin: '0 0 8px' }}>진하게 볶을수록 조직이 부서져 잘 녹아요. 그래서 굵게·낮은 온도·약한 교반·짧은 시간으로 갑니다. (ZP6S 다이얼은 출발점)</p>
+        <div style={{ overflowX: 'auto' }}><table><tbody>
+          <tr><th>로스팅</th><th>온도</th><th>비율</th><th>분쇄</th><th>시간</th></tr>
+          {ROASTS.map((r) => { const g = ROAST_GUIDE[r]; return (
+            <tr key={r}><td><b>{r}</b></td><td>{g.temp[0]}~{g.temp[1]}°C</td><td>1:{g.ratio}</td><td>{g.dial[0].toFixed(1)}~{g.dial[1].toFixed(1)}<br /><span className="mute">{g.micron[0]}~{g.micron[1]}µm</span></td><td>{Math.floor(g.drawdown[0] / 60)}:{String(g.drawdown[0] % 60).padStart(2, '0')}~{Math.floor(g.drawdown[1] / 60)}:{String(g.drawdown[1] % 60).padStart(2, '0')}</td></tr>
+          ); })}
+        </tbody></table></div>
+        <p className="mute" style={{ margin: '8px 0 0' }}>산지·가공도 영향이 커요. 고지대 워시드는 밀도가 높아 더 곱게·뜨겁게, 내추럴·저지대는 더 굵게·낮게 시작해 보세요. 로스팅 후 라이트는 7~28일, 다크는 3~14일이 적기예요.</p>
+      </div>
       <div className="card">
         <h2>맛 → 조정 치트시트</h2>
         <table><tbody>

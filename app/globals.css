@@ -136,4 +136,32 @@ table{border-collapse:collapse;width:100%;font-size:14px}
 td,th{border-bottom:1px solid var(--line);padding:8px 4px;text-align:left;vertical-align:top}
 .view[hidden]{display:none}
 .view{display:block}
-@media(max-width:380px){.timer{font-size:60px}.nums{gap:6px}}
+/* 로스팅 추천 */
+.rec{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.rec-h{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
+.rec-g{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.rec-g div{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.rec-g small{display:block;font-size:11px;color:var(--mute)}
+.rec-g b{display:block;font-size:17px;color:var(--accent);font-variant-numeric:tabular-nums}
+.rec-g em{font-style:normal;font-size:12px;color:var(--mute)}
+.strat{margin:0 0 8px;padding-left:18px;font-size:14px}
+.strat li{margin-bottom:4px}
+
+/* 추출: 한 화면 */
+.card.fit{display:flex;flex-direction:column;gap:6px;padding:12px;height:calc(100dvh - 250px);min-height:380px;margin-bottom:0}
+.tnow{display:flex;align-items:center;gap:12px}
+.tnow .timer{font-size:48px;margin:0;flex:none}
+.tnow .now{flex:1;margin:0;padding:6px 10px;text-align:left}
+.tnow .now .big{font-size:17px}
+.tnow .now .sub{font-size:12px}
+.card.fit .bar{margin:0;height:8px}
+.strip{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.strip li{display:flex;flex-direction:column;align-items:center;text-align:center;padding:5px 2px;border-radius:10px;background:var(--chip);border:1px solid transparent;font-size:11px;line-height:1.25;color:var(--mute);font-variant-numeric:tabular-nums;min-width:0}
+.strip li b{font-size:12px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.strip li.cur{background:var(--accent);color:var(--accent-ink)}
+.strip li.cur b{color:var(--accent-ink)}
+.strip li.past{background:none;border-color:var(--good);color:var(--good)}
+.strip li.past b{color:var(--good)}
+.anim{flex:1;min-height:0;display:flex}
+.anim>div{flex:1;min-height:0;width:100%}
+@media(max-width:380px){.timer{font-size:60px}.tnow .timer{font-size:42px}.nums{gap:6px}}
